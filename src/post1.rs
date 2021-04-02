@@ -30,12 +30,18 @@ impl Post {
         let s = mem::replace(&mut self.state, Box::new(TemporaryState));
         self.state = s.approve();
     }
+
+    pub fn reject(&mut self) {
+        let s = mem::replace(&mut self.state, Box::new(TemporaryState));
+        self.state = s.reject();
+    }
 }
 
 trait State {
     fn request_review(self: Box<Self>) -> Box<dyn State>;
 
     fn approve(self: Box<Self>) -> Box<dyn State>;
+    fn reject(self: Box<Self>) -> Box<dyn State>;
 
     fn content<'a>(&self, _post: &'a Post) -> &'a str {
         ""
@@ -50,6 +56,10 @@ impl State for TemporaryState {
     }
 
     fn approve(self: Box<Self>) -> Box<dyn State> {
+        panic!()
+    }
+
+    fn reject(self: Box<Self>) -> Box<dyn State> {
         panic!()
     }
 
@@ -68,6 +78,10 @@ impl State for Draft {
     fn approve(self: Box<Self>) -> Box<dyn State> {
         self
     }
+
+    fn reject(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
 }
 
 struct PendingReview {}
@@ -80,6 +94,10 @@ impl State for PendingReview {
     fn approve(self: Box<Self>) -> Box<dyn State> {
         Box::new(Published {})
     }
+
+    fn reject(self: Box<Self>) -> Box<dyn State> {
+        Box::new(Draft {})
+    }
 }
 
 struct Published {}
@@ -90,6 +108,10 @@ impl State for Published {
     }
 
     fn approve(self: Box<Self>) -> Box<dyn State> {
+        self
+    }
+
+    fn reject(self: Box<Self>) -> Box<dyn State> {
         self
     }
 

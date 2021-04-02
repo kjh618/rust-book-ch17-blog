@@ -1,5 +1,4 @@
 pub mod post1;
-pub mod post2;
 
 #[cfg(test)]
 mod tests {
@@ -10,6 +9,12 @@ mod tests {
         let mut post = Post::new();
 
         post.add_text("I ate a salad for lunch today");
+        assert_eq!("", post.content());
+
+        post.request_review();
+        assert_eq!("", post.content());
+
+        post.reject();
         assert_eq!("", post.content());
 
         post.request_review();
