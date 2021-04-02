@@ -39,7 +39,6 @@ impl Post {
 
 trait State {
     fn request_review(self: Box<Self>) -> Box<dyn State>;
-
     fn approve(self: Box<Self>) -> Box<dyn State>;
     fn reject(self: Box<Self>) -> Box<dyn State>;
 
@@ -72,7 +71,7 @@ struct Draft {}
 
 impl State for Draft {
     fn request_review(self: Box<Self>) -> Box<dyn State> {
-        Box::new(PendingReview {})
+        Box::new(PendingReview { approve_count: 0 })
     }
 
     fn approve(self: Box<Self>) -> Box<dyn State> {
@@ -84,15 +83,25 @@ impl State for Draft {
     }
 }
 
-struct PendingReview {}
+struct PendingReview {
+    approve_count: usize,
+}
+
+pub const REQUIRED_APPROVE_COUNT: usize = 2;
 
 impl State for PendingReview {
     fn request_review(self: Box<Self>) -> Box<dyn State> {
         self
     }
 
-    fn approve(self: Box<Self>) -> Box<dyn State> {
-        Box::new(Published {})
+    fn approve(mut self: Box<Self>) -> Box<dyn State> {
+        self.approve_count += 1;
+
+        if self.approve_count >= REQUIRED_APPROVE_COUNT {
+            Box::new(Published {})
+        } else {
+            self
+        }
     }
 
     fn reject(self: Box<Self>) -> Box<dyn State> {
